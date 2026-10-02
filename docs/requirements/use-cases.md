@@ -2442,6 +2442,86 @@ Details of a peer evaluation: The instructor may choose to see more details of o
 **Assumptions:**
 **Open Issues:**
 
+### **UC-WAR-nudge-non-submitters: The instructor nudges students who have not submitted due weekly work**
+
+**UC ID and Name:** UC-WAR-nudge-non-submitters: Nudge students who have not submitted due weekly work
+**Created By:**
+**Date Created:**
+**Primary Actor:** instructor
+**Secondary Actors:** student
+**Trigger:** The instructor indicates to view non-submitters and send reminders for a course section's weekly submissions.
+**Description:** The instructor wants to see which students in a course section are still missing due weekly submissions and remind only those students, so that students who already submitted are not nudged again.
+
+**Preconditions:**
+- PRE-1. The instructor is logged into the system.
+- PRE-2. The instructor is assigned to the course section (BR-section-scoped-access).
+
+**Postconditions:**
+- POST-1. The system displays the non-submitter status for each student in the selected course section and reminder run.
+- POST-2. Reminder emails are sent only to the selected students who are currently reminder-eligible non-submitters (BR-submission-reminder-eligibility), with repeated reminders throttled (BR-submission-reminder-throttle).
+
+**Main Success Scenario:**
+1. The instructor indicates to view non-submitters for weekly submissions in a selected course section.
+2. The system resolves the selected reminder run (weekly activity report due, peer evaluation due, or both) from the course section's configured due days and due times.
+3. The system computes each student's submission status for each due item and identifies reminder-eligible non-submitters according to BR-submission-reminder-eligibility.
+4. The system displays the non-submitter list with per-student status and due-item details.
+5. The instructor selects the students to remind (default: all reminder-eligible non-submitters) and confirms the send.
+6. The system applies BR-submission-reminder-throttle and removes suppressed recipients from this send operation.
+7. The system sends reminder emails to each remaining selected student and continues processing even if one email delivery fails.
+8. The system displays a send summary (sent, skipped with reason, failed with reason).
+9. Use case ends.
+
+**Extensions:**
+- **1a. The instructor is not assigned to the selected course section:**
+  - 1a1. The system denies access to this reminder operation for that course section (BR-section-scoped-access).
+  - 1a2. Use case ends.
+- **2a. No weekly submission item is due or reminder-eligible in the selected run:**
+  - 2a1. The system informs the instructor that no reminder can be sent for this run.
+  - 2a2. Use case ends.
+- **3a. A student is not assigned to a team:**
+  - 3a1. The system marks the student as excluded from reminder targeting because she is not eligible to submit (BR-team-assignment-required, BR-submission-reminder-eligibility).
+  - 3a2. The flow continues with the remaining students.
+- **3b. The peer-evaluation target week is not active, or its submission window is closed:**
+  - 3b1. The system marks peer evaluation as not due / not reminder-eligible for that student and week (BR-active-weeks, BR-evaluation-submission-window, BR-submission-reminder-eligibility).
+  - 3b2. The flow continues.
+- **3c. A student submitted a weekly activity report earlier and later deleted all activities for that week:**
+  - 3c1. The system treats that student as missing for weekly activity report reminder eligibility (BR-submission-reminder-eligibility).
+  - 3c2. The flow continues.
+- **5a. The instructor cancels before confirmation:**
+  - 5a1. The system sends no reminder email.
+  - 5a2. Use case ends.
+- **6a. One or more selected reminders are suppressed by throttle policy:**
+  - 6a1. The system skips those reminders and records the skip reason as throttled (BR-submission-reminder-throttle).
+  - 6a2. The flow continues with remaining recipients.
+- **7a. The mail server rejects a recipient address or delivery attempt fails:**
+  - 7a1. The system records that reminder as failed.
+  - 7a2. The system continues sending reminders to remaining recipients.
+
+**Priority:** High
+**Frequency of Use:** Approximately 2 users, average of 2-4 uses per week.
+**Business Rules:** BR-section-scoped-access, BR-team-assignment-required, BR-active-weeks, BR-evaluation-submission-window, BR-submission-reminder-eligibility, BR-submission-reminder-throttle, BR-role-based-access.
+
+**Associated Information:**
+
+Reminder target model:
+- A reminder run can include one or two due items for the course section on that day: weekly activity report and peer evaluation.
+- Non-submitter determination is per student and per due item, then merged for display and sending.
+- The same reminder-eligibility policy is used by scheduled reminders (FR-NOT-weekly-reminder) and this instructor-triggered nudge operation.
+
+Displayed status per student:
+- Weekly activity report: Submitted | Missing | Excluded (no team assignment).
+- Peer evaluation: Submitted | Missing | Not due (inactive week or closed window) | Excluded (no team assignment).
+- Overall reminder eligibility for this run: Eligible or Not eligible.
+
+Send summary fields:
+- Sent count and recipient list.
+- Skipped count with reason (throttled, not eligible at send time, unselected).
+- Failed count with delivery error reason.
+
+**Related Use Cases:** UC-WAR-manage-activities: Manage activities in a weekly activity report; UC-EVA-submit-evaluation: Submit a peer evaluation for the previous week.
+**Assumptions:**
+**Open Issues:**
+
 ## **Templates and Provisioning**
 
 ### **UC-TPL-provision-documents: The course admin creates team documents from built-in templates**
